@@ -9,15 +9,18 @@ $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'language' => 'ru',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'Pp1Rx2cLNOWxUFaS9htdnvJ1hGg4Lv6K',
-            'baseUrl' => ''
+            'baseUrl' => '',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ]
         ],
         'response' => [
             'format' => yii\web\Response::FORMAT_JSON,
@@ -56,7 +59,9 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                'user/roles/<id>' => 'user/role'
+                'user/roles/<id>' => 'user/role',
+                'user/<id:\d+>/block' => 'user/block',
+                'user/<id:\d+>' => 'user/one',
                 // [
                 //     'class' => 'yii\rest\UrlRule',
                 //     'controller' => 'user',
