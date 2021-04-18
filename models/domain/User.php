@@ -2,7 +2,10 @@
 
 namespace app\models\domain;
 
+use app\models\helper\UserStatus;
 use Yii;
+use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
 
 /**
  * This is the model class for table "user".
@@ -15,11 +18,11 @@ use Yii;
  * @property string $first_name
  * @property string|null $middle_name
  * @property string|null $auth_token
- * @property int $blocked
+ * @property int $status
  * 
  * @property Role $role
  */
-class User extends \yii\db\ActiveRecord
+class User extends ActiveRecord implements IdentityInterface
 {
 
     public static function fromParams(
@@ -37,13 +40,12 @@ class User extends \yii\db\ActiveRecord
         $new->last_name = $last_name;
         $new->first_name = $first_name;
         $new->middle_name = $middle_name;
-        $new->auth_token = Yii::$app->security->generateRandomString(128);
+        $new->status = UserStatus::ACTIVE;
 
         return $new;
     }
-    /**
-     * {@inheritdoc}
-     */
+
+
     public static function tableName()
     {
         return 'user';
@@ -53,7 +55,6 @@ class User extends \yii\db\ActiveRecord
     {
         $fields = parent::fields();
         unset($fields['auth_token'], $fields['password_hash']);
-
         return $fields;
     }
     public function rules()
@@ -61,20 +62,17 @@ class User extends \yii\db\ActiveRecord
         return [
             [['login', 'password_hash', 'role_id', 'last_name', 'first_name'], 'required'],
             [['password_hash'], 'string'],
-            [['role_id', 'blocked'], 'integer'],
-            [['blocked'], 'default', 'value' => 0],
+            [['role_id', 'status'], 'integer'],
+            [['status'], 'default', 'value' => 1],
             [['login'], 'string', 'max' => 20],
             [['last_name'], 'string', 'max' => 100],
             [['first_name', 'middle_name'], 'string', 'max' => 50],
             [['auth_token'], 'string', 'max' => 300],
             [['login'], 'unique'],
-            [['role_id'], 'exist', 'skipOnError' => true, 'targetClass' => Role::className(), 'targetAttribute' => ['role_id' => 'id']],
+            [['role_id'], 'exist', 'skipOnError' => true, 'targetClass' => Role::class, 'targetAttribute' => ['role_id' => 'id']],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -86,17 +84,88 @@ class User extends \yii\db\ActiveRecord
             'first_name' => 'Имя',
             'middle_name' => 'Отчество',
             'auth_token' => 'Auth Token',
-            'blocked' => 'Заблокировать'
+            'status' => 'Статус'
         ];
     }
 
-    /**
-     * Gets query for [[Role]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
     public function getRole()
     {
-        return $this->hasOne(Role::className(), ['id' => 'role_id']);
+        return $this->hasOne(Role::class, ['id' => 'role_id']);
     }
+
+
+    public function updateData($role_id, $last_name, $first_name, $middle_name)
+    {
+        $this->role_id = $role_id;
+        $this->last_name = $last_name;
+        $this->first_name = $first_name;
+        $this->middle_name = $middle_name;
+        // $this->auth_token = Yii::$app->security->generateRandomString(128);
+        $this->save();
+        return $this->auth_token;
+    }
+
+    public function updateToken()
+    {
+        $this->auth_token = Yii::$app->security->generateRandomString(128);
+        $this->save();
+        return $this->auth_token;
+    }
+
+    public function updateStatus(int $status)
+    {
+        $this->status = $status;
+        if ($status === UserStatus::DELETED) {
+            $this->login = '__deleted__' . $this->login;
+        }
+        return $this->save();
+    }
+
+    public function resetPassword($password)
+    {
+        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+        return $this->save();
+    }
+
+    ///
+    /// Authentication
+    /// OVERRIDES IdentityInterface
+    ///
+
+    public static function findIdentity($id)
+    {
+        // only for SESSIONS
+        // return static::findOne($id);
+    }
+
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+        return static::find()->where(['auth_token' => $token, 'status' => 1])->one();
+    }
+
+    function getAuthKey()
+    {
+        // ONLY with COOKIE
+        // return $this->auth_token;
+    }
+
+    function getId()
+    {
+        return $this->id;
+    }
+
+    public function validateAuthKey($auth_token)
+    {
+        // ONLY with COOKIE
+        // return $this->auth_token == $auth_token;
+    }
+
+    //     ///
+    //     /// Authorization
+    //     ///
+
+    //     public function can($user_id)
+    //     {
+    //         return $this->id === $user_id;
+    //     }
 }

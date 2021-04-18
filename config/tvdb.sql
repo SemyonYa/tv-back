@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 5.0.2
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Апр 09 2021 г., 17:10
--- Версия сервера: 5.7.29
--- Версия PHP: 7.3.17
+-- Время создания: Апр 18 2021 г., 23:01
+-- Версия сервера: 5.6.43-log
+-- Версия PHP: 7.2.22
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -37,9 +38,10 @@ CREATE TABLE `role` (
 --
 
 INSERT INTO `role` (`id`, `name`) VALUES
-(1, 'outer_manager'),
-(2, 'inner_pmanager'),
-(3, 'user');
+(1, 'Внешний менеджер'),
+(2, 'Внутренний менеджер'),
+(3, 'Пользователь'),
+(4, 'Администратор');
 
 -- --------------------------------------------------------
 
@@ -77,9 +79,22 @@ CREATE TABLE `user` (
   `login` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
   `password_hash` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `role_id` int(11) NOT NULL,
-  `fio` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `auth_token` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `last_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `first_name` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `middle_name` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `position` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `image` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `auth_token` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` int(11) NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп данных таблицы `user`
+--
+
+INSERT INTO `user` (`id`, `login`, `password_hash`, `role_id`, `last_name`, `first_name`, `middle_name`, `position`, `image`, `auth_token`, `status`) VALUES
+(1, 'yaptevsa', '$2y$13$IHnFLIp9T/O5zcUOUH94/uMdlia5vlaKNYR6QToWZIX2gWedge7te', 1, 'test12', 'test', 'test', NULL, NULL, 'drT5JqIwMZYonSkF5mylI7YLRnV-JMPRkB-ftmi-c28Ln3-F66X2Aof-58xInCN3WGLOaTt8gL2e9gaS87AIQeC8GPUaJZMdArBYalw_Fcla270GhYWsaIPdsdFDQ49L', 1),
+(2, 'test', '$2y$13$g/7CqPBA5t.qUvA9GYAdsu.V79EukIe63g3Jw/c2LNqAnrKMZBSBe', 1, 'test9', 'test', 'test', NULL, NULL, NULL, 1);
 
 --
 -- Индексы сохранённых таблиц
@@ -108,6 +123,7 @@ ALTER TABLE `title_type`
 --
 ALTER TABLE `user`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `login` (`login`),
   ADD KEY `role_id` (`role_id`);
 
 --
@@ -125,6 +141,12 @@ ALTER TABLE `title`
 --
 ALTER TABLE `title_type`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `user`
+--
+ALTER TABLE `user`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц

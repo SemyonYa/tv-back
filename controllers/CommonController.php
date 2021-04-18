@@ -2,13 +2,8 @@
 
 namespace app\controllers;
 
-use Yii;
-use yii\filters\AccessControl;
-use yii\web\Controller;
-use yii\web\Response;
-use yii\filters\VerbFilter;
-use app\models\LoginForm;
-use app\models\ContactForm;
+use yii\filters\auth\HttpBearerAuth;
+use yii\rest\Controller;
 
 class CommonController extends Controller
 {
@@ -16,24 +11,25 @@ class CommonController extends Controller
 
     public function behaviors()
     {
-        return [
-            'corsFilter' => [
-                'class' => \yii\filters\Cors::className(),
-                'cors' => [
-                    'Origin' => [
-                        'http://localhost:4200',
-                        'http://localhost:8100',
-                        'http://tv.injini.ru',
-                    ],
-                    'Access-Control-Allow-Origin' => true,
-                    'Access-Control-Allow-Credentials' => true,
-                    'Access-Control-Request-Method' => ['POST'],
-                    'Access-Control-Allow-Headers' => ['Origin', 'Content-Type', 'X-Auth-Token', 'Authorization', 'x-compress']
-                ],
-            ],
+        $behaviors = parent::behaviors();
+        $behaviors['authenticator'] = [
+            'class' => HttpBearerAuth::class,
         ];
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::class,
+            'cors' => [
+                'Origin' => [
+                    'http://localhost:4200',
+                    'http://localhost:8100',
+                    'http://tv.injini.ru',
+                ],
+                'Access-Control-Allow-Origin' => true,
+                'Access-Control-Allow-Credentials' => true,
+                'Access-Control-Request-Method' => ['POST'],
+                'Access-Control-Allow-Headers' => ['Origin', 'Content-Type', 'X-Auth-Token', 'Authorization', 'x-compress']
+            ],
+
+        ];
+        return $behaviors;
     }
-
-    // TODO: checkAccess() 
-
 }

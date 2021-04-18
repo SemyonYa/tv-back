@@ -30,7 +30,7 @@ $config = [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
+            'identityClass' => 'app\models\domain\User',
             'enableAutoLogin' => true,
             'enableSession' => false,
             'loginUrl' => null,
@@ -56,12 +56,16 @@ $config = [
         ],
         'db' => $db,
         'urlManager' => [
+            // TODO: 'enableStrictParsing' => true
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                'user/roles/<id>' => 'user/role',
-                'user/<id:\d+>/block' => 'user/block',
                 'user/<id:\d+>' => 'user/one',
+                'user/<id:\d+>/update' => 'user/update',
+                'user/<id:\d+>/delete' => 'user/delete',
+                'user/<id:\d+>/reset-password' => 'user/reset-password',
+                'user/<id:\d+>/set-status' => 'user/set-status',
+                'user/roles/<id>' => 'user/role',
                 // [
                 //     'class' => 'yii\rest\UrlRule',
                 //     'controller' => 'user',
